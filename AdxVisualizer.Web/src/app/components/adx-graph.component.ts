@@ -5,16 +5,15 @@ import {
   effect,
   ViewChild,
   ViewEncapsulation,
-  HostListener,
   inject,
   output,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GraphModule } from '@swimlane/ngx-graph';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AdxGraphService } from '../services/adx-graph.service';
 import { APP_CONFIG } from '../config';
-import { computed } from '@angular/core';
 import { MiniMapPosition } from '@swimlane/ngx-graph'; // 🔑 Import enum nativo
 import { LAYER_THEME } from '../shared/layer-theme';
 
@@ -44,7 +43,6 @@ export class AdxGraphComponent {
   selId = signal<string | null>(null);
   selNode = signal<any>(null);
   expanded = signal(false);
-  layoutMode = signal<string>('dagre');
   viewSize = signal<[number, number]>([window.innerWidth - 280, window.innerHeight]);
   funcBodyLoaded = signal(false);
   currentFuncName = signal<string | null>(null);
@@ -57,36 +55,9 @@ export class AdxGraphComponent {
   nodeUpdated = output<any>();
   toastMessage = signal<string | null>(null);
   private toastTimeout: any;
-  // 🌊 Impact Analysis
-  highlightMode = signal<'all' | 'upstream' | 'downstream'>('all');
 
   @HostListener('window:resize') onResize() {
     this.viewSize.set([window.innerWidth - 280, window.innerHeight]);
-  }
-
-  // ⌨️ Keyboard Shortcuts
-  @HostListener('window:keydown', ['$event'])
-  handleKeys(e: KeyboardEvent) {
-    const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
-
-    if (e.key === '+' || e.key === '=') {
-      e.preventDefault();
-      this.zoomIn(e as any);
-    } else if (e.key === '-') {
-      e.preventDefault();
-      this.zoomOut(e as any);
-    } else if (e.key === '0' || e.key.toLowerCase() === 'f') {
-      e.preventDefault();
-      this.center();
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      this.closePanel();
-    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-      e.preventDefault();
-      const searchInput = document.querySelector('.search-wrap input') as HTMLInputElement;
-      searchInput?.focus();
-    }
   }
 
   nodeClicked = output<string>();
@@ -179,14 +150,13 @@ export class AdxGraphComponent {
       });
     }
 
-    // 🔑 Semplificazione: dimmed rimosso. Solo highlight positivo.
+    // 🔑 Semplificazione: solo highlight positivo.
     this.visN.set(
       nodes.map((n) => ({
         id: n.id,
         label: n.label,
         data: { ...n, layer: n.layer || 'Unknown' },
-        class: n.type === 'Table' ? 'node-table' : n.type === 'MaterializedView' ? 'node-mv' : '', // 🔑 Classi native per ngx-graph
-        dimmed: false,
+        class: n.type === 'Table' ? 'node-table' : n.type === 'MaterializedView' ? 'node-mv' : '',
         highlighted: this.highlightedNodes().has(n.id),
       })),
     );
@@ -204,7 +174,6 @@ export class AdxGraphComponent {
           target: tExact,
           label: e.relationType,
           data: e,
-          dimmed: false,
           highlighted: this.highlightedEdges().has(`e${i}`),
         };
       }),
@@ -272,20 +241,14 @@ export class AdxGraphComponent {
     this.highlightedEdges.set(new Set());
 
     if (emitClear) {
-      this.panelClosed.emit(); // 🔑 Notifica il padre di pulire selIds
+      this.panelClosed.emit();
     }
-  }
-  // 🌊 Impact Analysis: Upstream / Downstream / All
-  setHighlightMode(mode: 'all' | 'upstream' | 'downstream') {
-    this.highlightMode.set(mode);
-    if (this.selId()) this.highlightSingleNode(this.selId()!);
   }
 
   highlightSingleNode(nodeId: string) {
     this.highlightedNodes.set(new Set([nodeId]));
-    this.highlightedEdges.set(new Set()); // Zero highlight su edge o nodi correlati
+    this.highlightedEdges.set(new Set());
   }
-
 
   openInAdx() {
     const query = this.rawCode();
@@ -450,10 +413,6 @@ export class AdxGraphComponent {
     else if (api?.panZoomService?.center) api.panZoomService.center();
   }
 
-  toggleLayout() {
-    this.layoutMode.set(this.layoutMode() === 'dagre' ? 'd3ForceDirected' : 'dagre');
-  }
-
   midPoint(points?: any[]) {
     if (!points || points.length < 2) return { x: 0, y: 0 };
     const mid = Math.floor(points.length / 2);
@@ -464,18 +423,11 @@ export class AdxGraphComponent {
     return text && text.length > max ? text.slice(0, max - 1) + '…' : text || '';
   }
 
-col(layer: string | undefined, type: string): string {
-  const safe = (layer || 'Unknown') as keyof typeof LAYER_THEME;
-  const theme = LAYER_THEME[safe];
-  // Mappa le chiavi storiche (bdr/acc/txt) alle nuove (border/accent/text)
-  const key = type === 'bdr' ? 'border' : type === 'acc' ? 'accent' : type === 'txt' ? 'text' : type;
-  return theme?.[key as keyof typeof theme] || LAYER_THEME.Unknown[key as keyof typeof LAYER_THEME['Unknown']];
-}
-
-
-
-  isDimmed(nodeId: string): boolean {
-    return this.visN().find((n) => n.id === nodeId)?.dimmed || false;
+  col(layer: string | undefined, type: string): string {
+    const safe = (layer || 'Unknown') as keyof typeof LAYER_THEME;
+    const theme = LAYER_THEME[safe];
+    const key = type === 'bdr' ? 'border' : type === 'acc' ? 'accent' : type === 'txt' ? 'text' : type;
+    return theme?.[key as keyof typeof theme] || LAYER_THEME.Unknown[key as keyof typeof LAYER_THEME['Unknown']];
   }
 
   upstreamCount = computed(() => {
