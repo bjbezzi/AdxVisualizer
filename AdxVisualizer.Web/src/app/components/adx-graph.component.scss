@@ -100,9 +100,6 @@
 .layer-silver  { background: var(--layer-silver-bg); border: 1px solid var(--layer-silver-border); }
 .layer-gold    { background: var(--layer-gold-bg);   border: 1px solid var(--layer-gold-border); }
 .layer-unknown { background: var(--layer-unknown-bg);border: 1px solid var(--layer-unknown-border); }
-.gauge-swatch {
-  background: linear-gradient(90deg, #374151 50%, #f59e0b 50%);
-}
 
 /* 📊 Graph Nodes & Edges */
 .node {
@@ -163,9 +160,6 @@
 .edge-label {
   pointer-events: none;
   user-select: none;
-}
-.edge.highlighted {
-  display: none;
 }
 
 /* 🪟 Modal Backdrop & Detail Panel */

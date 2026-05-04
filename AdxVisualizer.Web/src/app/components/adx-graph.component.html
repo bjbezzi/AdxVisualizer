@@ -31,7 +31,7 @@
     [view]="viewSize()"
     [nodes]="visN()"
     [links]="visL()"
-    [layout]="layoutMode()"
+    layout="dagre"
     [nodeWidth]="220"
     [nodeHeight]="70"
     [autoCenter]="false"
@@ -76,7 +76,6 @@
         class="node"
         [class.node-table]="n.data?.type === 'Table'"
         [class.node-mv]="n.data?.type === 'MaterializedView'"
-        [class.dimmed]="$any(n).dimmed"
         [class.highlighted]="$any(n).highlighted"
       >
         <svg:title>{{ n.label }}{{ n.data.docString ? '\n💬 ' + n.data.docString : '' }}</svg:title>
@@ -112,7 +111,7 @@
 
     <!-- 🔗 Template Link -->
     <ng-template #linkTemplate let-l>
-      <svg:g class="edge" [class.dimmed]="$any(l).dimmed" [class.highlighted]="$any(l).highlighted">
+      <svg:g class="edge" [class.highlighted]="$any(l).highlighted">
         <svg:path
           class="edge-path"
           [attr.d]="$any(l).line"
