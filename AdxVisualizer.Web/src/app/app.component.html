@@ -5,8 +5,8 @@
       <app-table-selector
         [nodes]="nodes()"
         [layers]="layers()"
-        [(sel)]="selIds"
-        [(selLayers)]="selLays"
+        [(sel)]="selectedIds"
+        [(selLayers)]="selectedLayers"
       >
       </app-table-selector>
 
@@ -31,17 +31,17 @@
         <app-adx-graph
           [allNodes]="nodes()"
           [allEdges]="edges()"
-          [selIds]="selIds()"
-          [selLays]="selLays()"
+          [selIds]="selectedIds()"
+          [selLays]="selectedLayers()"
           (nodeClicked)="handleNodeClick($event)"
-          (panelClosed)="selIds.set([])"
+          (panelClosed)="selectedIds.set([])"
           (nodeUpdated)="handleNodeUpdated($event)"
         >
         </app-adx-graph>
       } @else {
         <div class="loader">
           <div class="spinner"></div>
-          <p>{{ loadingMsg() }}</p>
+          <p>{{ loadingMessage() }}</p>
         </div>
       }
     </div>
