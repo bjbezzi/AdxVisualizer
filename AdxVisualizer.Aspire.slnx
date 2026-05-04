@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="AdxVisualizer.Api/AdxVisualizer.Api.csproj" />
+  <Project Path="AdxVisualizer.Aspire.AppHost/AdxVisualizer.Aspire.AppHost.csproj" />
+  <Project Path="AdxVisualizer.Aspire.ServiceDefaults/AdxVisualizer.Aspire.ServiceDefaults.csproj" />
+</Solution>

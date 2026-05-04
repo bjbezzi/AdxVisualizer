@@ -1,0 +1,29 @@
+ .app-layout { display: flex; flex-direction: column; height: 100vh; background: #0B0F19; }
+.main-content { display: flex; flex: 1; overflow: hidden; position: relative; }
+  .graph-area { flex: 1; position: relative; min-width: 0; }
+    .loader { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #9CA3AF; gap: 12px; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #1F2937; border-top-color: #3B82F6; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .sidebar-wrap { position: relative; width: 280px; flex-shrink: 0; }
+.sidebar-loader {
+  position: absolute; inset: 0; background: rgba(11,15,25,0.88);
+  backdrop-filter: blur(2px); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px; z-index: 10;
+  color: #9CA3AF; font-size: 12px; border-right: 1px solid #1F2937;
+}
+.sidebar-wrap {
+  max-width: 280px; min-width: 280px; flex-shrink: 0;
+  transition: max-width 0.25s ease, min-width 0.25s ease, opacity 0.2s ease;
+  overflow: hidden; border-right: 1px solid #1F2937; background: #0B0F19;
+}
+.sidebar-wrap.collapsed { max-width: 0; min-width: 0; opacity: 0; border-right: none; }
+
+.sidebar-toggle {
+  position: absolute; left: 280px; top: 50%; transform: translateY(-50%);
+  z-index: 40; background: #1F2937; border: 1px solid #374151; border-left: none;
+  color: #9CA3AF; width: 20px; height: 40px; border-radius: 0 6px 6px 0;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: left 0.25s ease, background 0.2s, color 0.2s;
+}
+.sidebar-toggle:hover { background: #374151; color: #F9FAFB; }
+.sidebar-wrap.collapsed ~ .sidebar-toggle { left: 0; }

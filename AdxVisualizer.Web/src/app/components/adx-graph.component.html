@@ -1,0 +1,298 @@
+<div class="graph-container">
+  <!-- 🎛️ Overlay UI: Controlli & Legenda -->
+  <div class="overlay-ui">
+    <div class="controls">
+      <button type="button" class="btn-icon" (click)="zoomIn($event)" title="Zoom In (+)">
+        ＋
+      </button>
+      <button type="button" class="btn-icon" (click)="zoomOut($event)" title="Zoom Out (-)">
+        －
+      </button>
+      <button type="button" class="btn-icon" (click)="center()" title="Fit View (0/F)">↺</button>
+      <button type="button" class="btn-icon" (click)="exportSVG()" title="Export SVG">📥</button>
+      <button type="button" class="btn-icon" (click)="exportPNG()" title="Export PNG">🖼️</button>
+    </div>
+
+    <div class="legend">
+      <div class="leg-section">Type</div>
+      <div class="leg-item"><span class="swatch type-table"></span> Table</div>
+      <div class="leg-item"><span class="swatch type-mv"></span> Materialized View</div>
+      <div class="leg-section">Layer</div>
+      <div class="leg-item"><span class="swatch layer-bronze"></span> Bronze</div>
+      <div class="leg-item"><span class="swatch layer-silver"></span> Silver</div>
+      <div class="leg-item"><span class="swatch layer-gold"></span> Gold</div>
+      <div class="leg-item"><span class="swatch layer-unknown"></span> Unknown</div>
+    </div>
+  </div>
+
+  <!-- 📊 Grafo -->
+  <ngx-graph
+    #graph
+    [view]="viewSize()"
+    [nodes]="visN()"
+    [links]="visL()"
+    [layout]="layoutMode()"
+    [nodeWidth]="220"
+    [nodeHeight]="70"
+    [autoCenter]="false"
+    [autoZoom]="false"
+    [enableZoom]="true"
+    [panningEnabled]="true"
+    [zoomSpeed]="0.25"
+    [minZoomLevel]="0.2"
+    [maxZoomLevel]="3"
+    [showMiniMap]="true"
+    [miniMapPosition]="MiniMapPosition.UpperRight"
+    (select)="onSelect($event)"
+  >
+    <ng-template #defsTemplate>
+      <svg:marker
+        id="arrow-blue"
+        viewBox="0 -5 10 10"
+        refX="9"
+        refY="0"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+      >
+        <svg:path d="M0,-4L8,0L0,4Z" fill="#3B82F6" />
+      </svg:marker>
+      <svg:marker
+        id="arrow-orange"
+        viewBox="0 -5 10 10"
+        refX="9"
+        refY="0"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+      >
+        <svg:path d="M0,-4L8,0L0,4Z" fill="#F97316" />
+      </svg:marker>
+    </ng-template>
+
+    <!-- 🔷 Template Nodo -->
+    <ng-template #nodeTemplate let-n>
+      <svg:g
+        class="node"
+        [class.node-table]="n.data?.type === 'Table'"
+        [class.node-mv]="n.data?.type === 'MaterializedView'"
+        [class.dimmed]="$any(n).dimmed"
+        [class.highlighted]="$any(n).highlighted"
+      >
+        <svg:title>{{ n.label }}{{ n.data.docString ? '\n💬 ' + n.data.docString : '' }}</svg:title>
+
+        <!-- 🔑 Sfondo = Layer | Bordo = Type (gestito via CSS) -->
+        <svg:rect
+          class="node-bg"
+          [attr.fill]="col(n.data.layer, 'bg')"
+          [attr.width]="n.dimension?.width || 220"
+          [attr.height]="n.dimension?.height || 70"
+          rx="8"
+        />
+
+        <!-- 📝 Contenuto -->
+        <svg:text class="node-title" x="16" y="24" font-size="13" font-weight="600" fill="#F9FAFB">
+          {{ truncate(n.label, 22) }}
+        </svg:text>
+        <svg:text
+          class="node-layer"
+          x="16"
+          y="40"
+          font-size="10"
+          font-weight="700"
+          [attr.fill]="col(n.data.layer, 'txt')"
+        >
+          {{ (n.data.layer || 'Unknown').toUpperCase() }}
+        </svg:text>
+        <svg:text class="node-rows" x="16" y="56" font-size="10" fill="#9CA3AF">
+          📊 {{ formatCount(n.data.totalRowCount) }} rows
+        </svg:text>
+      </svg:g>
+    </ng-template>
+
+    <!-- 🔗 Template Link -->
+    <ng-template #linkTemplate let-l>
+      <svg:g class="edge" [class.dimmed]="$any(l).dimmed" [class.highlighted]="$any(l).highlighted">
+        <svg:path
+          class="edge-path"
+          [attr.d]="$any(l).line"
+          [attr.stroke]="$any(l).data?.relationType === 'UpdatePolicy' ? '#3B82F6' : '#F97316'"
+          [attr.marker-end]="
+            $any(l).data?.relationType === 'UpdatePolicy'
+              ? 'url(#arrow-blue)'
+              : 'url(#arrow-orange)'
+          "
+          stroke-width="2.5"
+          fill="none"
+          stroke-linecap="round"
+        />
+        <svg:text
+          class="edge-label"
+          [attr.x]="midPoint($any(l).points).x || 0"
+          [attr.y]="midPoint($any(l).points).y || 0"
+          font-size="9"
+          fill="#94A3B8"
+          text-anchor="middle"
+        >
+          {{ $any(l).data?.relationType === 'UpdatePolicy' ? '↻' : '🔗' }}
+        </svg:text>
+      </svg:g>
+    </ng-template>
+  </ngx-graph>
+
+  <!-- 🪟 Pannello Dettagli (Modale Enterprise) -->
+  @if (selNode()) {
+    <div class="modal-backdrop" (click)="closePanel()"></div>
+    <div class="details-panel modal-centered">
+      <div class="panel-header">
+        <div class="header-identity">
+          <span
+            class="header-type-badge"
+            [class.badge-table]="selNode()?.data.type === 'Table'"
+            [class.badge-mv]="selNode()?.data.type === 'MaterializedView'"
+          >
+            {{ selNode()?.data.type === 'Table' ? 'TABLE' : 'MV' }}
+          </span>
+          <h3 class="header-title">{{ selNode()?.label }}</h3>
+        </div>
+        <button class="close-btn" (click)="closePanel()">✕</button>
+      </div>
+
+      <div class="panel-body">
+        <div class="section">
+          <div class="section-header">Context</div>
+          <div class="context-grid">
+            <div class="ctx-item">
+              <span class="ctx-label">Layer</span>
+              <span
+                class="ctx-value layer-tag"
+                [class]="(selNode()?.data.layer || 'Unknown').toLowerCase()"
+              >
+                {{ selNode()?.data.layer || 'Unknown' }}
+              </span>
+            </div>
+            <div class="ctx-item">
+              <span class="ctx-label">Upstream</span
+              ><span class="ctx-value">{{ upstreamCount() }}</span>
+            </div>
+            <div class="ctx-item">
+              <span class="ctx-label">Downstream</span
+              ><span class="ctx-value">{{ downstreamCount() }}</span>
+            </div>
+          </div>
+          @if (selNode()?.data.docString) {
+            <div class="description">{{ selNode()?.data.docString }}</div>
+          }
+        </div>
+
+        <div class="section">
+          <div class="section-header">Performance & Policy</div>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="m-label">Total Rows</span
+              ><span class="m-value">{{ formatCount(selNode()?.data.totalRowCount) }}</span>
+            </div>
+            <div class="metric-card">
+              <span class="m-label">Hot Cache</span
+              ><span class="m-value">{{ formatCount(selNode()?.data.hotRowCount) }}</span>
+            </div>
+            <div class="metric-card">
+              <span class="m-label">Cache %</span
+              ><span class="m-value">{{
+                selNode()?.data.totalRowCount
+                  ? ((selNode()?.data.hotRowCount / selNode()?.data.totalRowCount) * 100).toFixed(
+                      1
+                    ) + '%'
+                  : '0%'
+              }}</span>
+            </div>
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge-track">
+              <div
+                class="gauge-fill"
+                [style.width.%]="
+                  selNode()?.data.totalRowCount
+                    ? (selNode()?.data.hotRowCount / selNode()?.data.totalRowCount) * 100
+                    : 0
+                "
+              ></div>
+            </div>
+          </div>
+          <div class="retention-row">
+            @if (selNode()?.data.hotCachePeriod) {
+              <span class="ret-badge hot"
+                ><span class="ret-icon">🔥</span><span class="ret-label">Hot</span
+                ><span class="ret-value">{{
+                  formatDuration(selNode()?.data.hotCachePeriod)
+                }}</span></span
+              >
+            }
+            @if (selNode()?.data.softDeletePeriod) {
+              <span class="ret-badge soft"
+                ><span class="ret-icon">🗄️</span><span class="ret-label">Retention</span
+                ><span class="ret-value">{{
+                  formatDuration(selNode()?.data.softDeletePeriod)
+                }}</span></span
+              >
+            }
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            {{
+              selNode()?.data.type?.toLowerCase() === 'table' ? 'Update Policy' : 'MV Definition'
+            }}
+          </div>
+          <div class="action-bar">
+            <button class="btn-primary" (click)="openInAdx()" [disabled]="!rawCode()">
+              🌐 Open in ADX
+            </button>
+            <div class="btn-group">
+              @if (hasUpdatePolicy()) {
+                <button
+                  class="btn-secondary"
+                  (click)="loadFunctionBody()"
+                  [disabled]="funcBodyLoaded()"
+                >
+                  🔧 Load Function
+                </button>
+              }
+              <button
+                class="btn-secondary"
+                (click)="refreshSingleNode()"
+                [disabled]="isRefreshing()"
+              >
+                <span class="refresh-icon" [class.spinning]="isRefreshing()">🔄</span> Refresh
+              </button>
+              <button class="btn-secondary" (click)="copyQuery()" [disabled]="!rawCode()">
+                📋 Copy
+              </button>
+              <button class="btn-secondary" (click)="toggleExpand()">
+                {{ expanded() ? 'Collapse' : 'Expand' }}
+              </button>
+            </div>
+          </div>
+          @if (currentFuncName()) {
+            <div class="func-tag">
+              🔧 Function: <code>{{ currentFuncName() }}</code>
+            </div>
+          }
+          <pre
+            class="code-block"
+            [class.expanded]="expanded()"
+            [innerHTML]="highlightedCode()"
+          ></pre>
+          @if (!funcBodyLoaded() && selNode()?.data.type?.toLowerCase() === 'table') {
+            <div class="empty-state">Click 🔧 Load Function to view policy</div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+@if (toastMessage()) {
+  <div class="toast">{{ toastMessage() }}</div>
+}

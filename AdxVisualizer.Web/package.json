@@ -1,0 +1,43 @@
+{
+  "name": "adx-visualizer.web",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "run-script-os",
+    "start:windows": "ng serve --port %PORT%",
+    "start:default": "ng serve --port $PORT",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development"
+  },
+  "private": true,
+  "packageManager": "npm@11.12.1",
+  "dependencies": {
+    "@angular/animations": "^21.2.11",
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "@swimlane/ngx-graph": "^12.0.0-alpha.0",
+    "fuse.js": "^7.3.0",
+    "run-script-os": "*",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^21.1.5",
+    "@angular/cli": "^21.2.9",
+    "@angular/compiler-cli": "^21.2.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2"
+  },
+  "overrides": {
+    "@swimlane/ngx-graph": {
+      "@angular/core": "^21.0.0",
+      "@angular/common": "^21.0.0",
+      "@angular/animations": "^21.0.0",
+      "@angular/platform-browser": "^21.0.0"
+    }
+  }
+}

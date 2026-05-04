@@ -1,0 +1,77 @@
+:host {
+  display: block;
+}
+
+.app-header {
+  height: 56px;
+  background: #0B0F19;
+  border-bottom: 1px solid #1F2937;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 100;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  font-size: 22px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #F9FAFB;
+  letter-spacing: 0.3px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-action {
+  background: #1F2937;
+  border: 1px solid #374151;
+  color: #CBD5E1;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: 0.2s;
+}
+
+  .btn-action:hover {
+    background: #374151;
+    color: #F9FAFB;
+  }
+
+  .btn-refresh {
+  background: #1D4ED8;
+  border: 1px solid #2563EB;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  height: 32px;
+}
+.btn-refresh:hover {
+  background: #1E40AF;
+  border-color: #3B82F6;
+}
+.btn-refresh:active {
+  transform: translateY(1px);
+}

@@ -1,0 +1,49 @@
+<div class="app-layout">
+  <app-header (refresh)="refreshData()" (toggleSidebar)="toggleSidebar()"></app-header>
+  <div class="main-content">
+    <div class="sidebar-wrap" [class.collapsed]="!sidebarOpen()">
+      <app-table-selector
+        [nodes]="nodes()"
+        [layers]="layers()"
+        [(sel)]="selIds"
+        [(selLayers)]="selLays"
+      >
+      </app-table-selector>
+
+      @if (!loaded()) {
+        <div class="sidebar-loader">
+          <div class="spinner"></div>
+          <p>Aggiornamento lista...</p>
+        </div>
+      }
+    </div>
+
+    <button
+      class="sidebar-toggle"
+      (click)="toggleSidebar()"
+      title="{{ sidebarOpen() ? 'Nascondi' : 'Mostra' }} lista"
+    >
+      {{ sidebarOpen() ? '◀' : '▶' }}
+    </button>
+
+    <div class="graph-area">
+      @if (loaded()) {
+        <app-adx-graph
+          [allNodes]="nodes()"
+          [allEdges]="edges()"
+          [selIds]="selIds()"
+          [selLays]="selLays()"
+          (nodeClicked)="handleNodeClick($event)"
+          (panelClosed)="selIds.set([])"
+          (nodeUpdated)="handleNodeUpdated($event)"
+        >
+        </app-adx-graph>
+      } @else {
+        <div class="loader">
+          <div class="spinner"></div>
+          <p>{{ loadingMsg() }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

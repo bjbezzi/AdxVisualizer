@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #0B0F19;
+  --surface: #111827;
+  --border: #1F2937;
+  --text: #F9FAFB;
+  --text2: #9CA3AF;
+  --bronze: #6B7280;
+  --silver: #0EA5E9;
+  --gold: #F59E0B;
+  --blue: #3B82F6;
+  --orange: #F97316;
+  --goldSel: #FBBF24;
+ --layer-bronze-bg: #1C140A; --layer-bronze-border: #7A5C1F; --layer-bronze-accent: #D4A373; --layer-bronze-text: #D4A373;
+  --layer-silver-bg: #1A2233; --layer-silver-border: #5A6F8A; --layer-silver-accent: #94A8C4; --layer-silver-text: #94A8C4;
+  --layer-gold-bg: #2B2208;   --layer-gold-border: #A67C00;   --layer-gold-accent: #F5D03B;   --layer-gold-text: #F5D03B;
+  --layer-unknown-bg: #14181F;--layer-unknown-border: #3A414A;--layer-unknown-accent: #6B7580;--layer-unknown-text: #6B7580;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 3px;
+}

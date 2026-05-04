@@ -1,0 +1,49 @@
+<div class="sidebar">
+  <div class="filter-group">
+    <div class="layers">
+      @for (l of layers(); track l) {
+        <button class="btn-layer" [class.active]="selLayers().includes(l)" [class]="l.toLowerCase()" (click)="toggleLayer(l)">
+          {{ l }}
+        </button>
+      }
+    </div>
+    <div class="search-wrap">
+      <input type="text" placeholder="Cerca tabelle o viste..." [value]="q()" (input)="q.set($any($event).target.value)" class="input" />
+      <button class="clear-btn" *ngIf="q()" (click)="q.set('')">✕</button>
+    </div>
+  </div>
+
+  <div class="view-divider"></div>
+
+  <div class="view-toggle">
+    <button class="btn-toggle" [class.active]="groupByLayer()" (click)="groupByLayer.set(true)" title="Raggruppa per layer">📁 Per Layer</button>
+    <button class="btn-toggle" [class.active]="!groupByLayer()" (click)="groupByLayer.set(false)" title="Ordina per volume righe">📊 Per Righe</button>
+  </div>
+
+  <div class="list">
+    @for (n of filteredNodes(); track n.id; let i = $index) {
+      @if (groupByLayer() && (i === 0 || n.layer !== filteredNodes()[i - 1]?.layer)) {
+        <div class="layer-divider">
+          <span class="divider-dot" [class]="(n.layer || 'Unknown').toLowerCase()"></span>
+          <span class="divider-label">{{ n.layer || 'Unknown' }}</span>
+        </div>
+      }
+      
+      <div class="item" [class.selected]="sel().includes(n.id)" (click)="toggle(n.id)">
+        <div class="item-accent" [style.background]="getLayerAccent(n.layer)"></div>
+        <div class="item-content">
+          <span class="item-name" [innerHTML]="getHighlightedLabel(n)"></span>
+          <div class="item-meta">
+            <span class="type-badge" [class.badge-table]="n.type === 'Table'" [class.badge-mv]="n.type === 'MaterializedView'">
+              {{ n.type === 'Table' ? 'TABLE' : 'MV' }}
+            </span>
+            @if (!groupByLayer()) {
+              <span class="row-count">{{ formatCount(n.totalRowCount ?? n.totalRowCount ?? 0) }}</span>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+  <!-- 🔹 Reset rimosso definitivamente -->
+</div>
